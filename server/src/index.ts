@@ -2,8 +2,9 @@ import express from 'express'
 import cors from 'cors'
 import path from 'path'
 import dotenv from 'dotenv'
+
 import connectDB from './config/db'
-import passengerRoutes from './routes/passenger'
+import driverRoutes from './routes/driverRoute'
 
 // Load environment variables from .env file
 dotenv.config({ path: path.resolve(__dirname, '../../.env') })
@@ -22,9 +23,8 @@ app.get('/api/value', (req, res) => {
 })
 
 // Driver registration routes
-app.use('/api/passenger', passengerRoutes)
+app.use('/api/driver', driverRoutes)
 
 app.listen(PORT, () => {
-  console.log(`✅ Server running at ${process.env.EXPRESS_SERVER_IP}:${PORT}`)
+  console.log(`✅ Server running at http://10.156.26.90:${PORT}`)
 })
-
