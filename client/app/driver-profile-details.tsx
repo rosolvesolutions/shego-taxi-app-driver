@@ -8,7 +8,7 @@ import {
   TextStyle,
   ViewStyle,
 } from 'react-native'
-import { router } from 'expo-router'
+// import { router } from 'expo-router'
 
 export default function DriverProfileDetails(): JSX.Element {
   const [firstName, setFirstName] = useState('')
