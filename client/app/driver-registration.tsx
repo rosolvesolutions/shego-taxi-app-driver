@@ -25,8 +25,10 @@ export default function DriverRegistration(): JSX.Element {
       return
     }
   
-    // Proceed to next screen
-    router.push('/driver-side/driver-profile-details')
+    router.push({
+      pathname: '/driver-profile-details',
+      params: { phoneNumber: phone, email, city },
+    })
   }
   
 
