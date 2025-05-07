@@ -1,7 +1,7 @@
 // server/src/routes/driver.ts
 import express from 'express'
 import Driver from '../models/driverModel'
-import { log } from 'console'
+//import { log } from 'console'
 
 const router = express.Router()
 
