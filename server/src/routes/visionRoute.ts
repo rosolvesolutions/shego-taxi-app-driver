@@ -1,7 +1,6 @@
 import express, { Request, Response } from 'express'
 import multer from 'multer'
-// 可选: 只有在 Vision 类型有问题时才加下面一行
-// @ts-ignore
+
 import { ImageAnnotatorClient } from '@google-cloud/vision'
 import path from 'path'
 
@@ -36,9 +35,11 @@ router.post('/ocr', upload.single('image'), async (req: Request, res: Response) 
       text: detections.length > 0 ? detections[0].description : 'No text found',
       raw: detections,
     })
-  } catch (err: any) {
-    console.error('❌ Error during OCR:', err.message)
-    res.status(500).json({ error: 'Failed to process image', details: err.message })
+  } catch (err) {
+    const error = err as Error
+    console.error('❌ Error during OCR:', error.message)
+    res.status(500).json({ error: 'Failed to process image', details: error.message })
   }
 })
+
 export default router
