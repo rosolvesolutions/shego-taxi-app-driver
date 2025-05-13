@@ -9,12 +9,13 @@ import {
   Image,
   Alert,
 } from 'react-native'
-import { useLocalSearchParams } from 'expo-router'
+import { useLocalSearchParams, useRouter } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
 import cameraIcon from '../assets/images/camera.png'
 
 export default function VerificationPage(): JSX.Element {
   const { phoneNumber, email, city } = useLocalSearchParams()
+  const router = useRouter()
 
   const userInfo = phoneNumber || email || 'User'
 
@@ -47,28 +48,23 @@ export default function VerificationPage(): JSX.Element {
     setVerificationType(null)
   }
 
-  // 🚀 MOCK 版 OCR 上传
   const uploadImageForOCR = async () => {
     if (!imageUri) return
 
-    try {
-      console.log('mock uploading... 🚀')
+    // Mock upload - 假数据 & 自动跳转
+    console.log('Uploading (mock)... 🚀')
+    setTimeout(() => {
+      console.log('OCR result (mock):', {
+        text: 'Mock OCR Result: Passport verified successfully!',
+      })
+      Alert.alert('OCR Completed', 'Your passport has been verified successfully.')
 
-      // 模拟“识别耗时”
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      // 模拟返回的OCR识别数据
-      const data = {
-        text: 'Mock OCR result：\nName: John Doe\nPassport No: X1234567\nNationality: Ireland',
-        raw: [],
-      }
-
-      console.log('OCR result (mock):', data)
-      Alert.alert('OCR Result (Mock)', data.text)
-    } catch (err) {
-      console.error('OCR upload failed (mock)', err)
-      Alert.alert('Error', 'Failed to mock OCR')
-    }
+      // ✅ 自动跳转到 driver-profile-details，并携带参数
+      router.push({
+        pathname: '/driver-profile-details',
+        params: { phoneNumber, email, city },
+      })
+    }, 1000)
   }
 
   return (

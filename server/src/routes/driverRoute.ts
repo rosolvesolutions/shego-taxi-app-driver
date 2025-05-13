@@ -26,6 +26,8 @@ router.post('/register', async (req, res) => {
       pfp,
       taxiNumber,
     })
+    console.log('📩 Received POST /register with body:', req.body)
+
 
     await newDriver.save()
 
