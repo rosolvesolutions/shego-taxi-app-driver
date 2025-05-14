@@ -14,6 +14,7 @@ import * as ImagePicker from 'expo-image-picker'
 import cameraIcon from '../assets/images/camera.png'
 
 export default function VerificationPage(): JSX.Element {
+  // Get user data from the previous page
   const { phoneNumber, email, city } = useLocalSearchParams()
   const router = useRouter()
 
@@ -22,8 +23,10 @@ export default function VerificationPage(): JSX.Element {
   const [imageUri, setImageUri] = useState<string | null>(null)
   const [verificationType, setVerificationType] = useState<'passport' | 'id' | null>(null)
 
+  // Launch the camera to capture a document (passport or ID)
   const launchCamera = async (type: 'passport' | 'id') => {
     setVerificationType(type)
+
     const { status } = await ImagePicker.requestCameraPermissionsAsync()
     if (status !== 'granted') {
       Alert.alert('Permission denied', 'Camera access is required for verification.')
@@ -43,23 +46,25 @@ export default function VerificationPage(): JSX.Element {
     }
   }
 
+  // Reset verification state
   const resetVerification = () => {
     setImageUri(null)
     setVerificationType(null)
   }
 
+  // Upload image for OCR (mocked logic)
   const uploadImageForOCR = async () => {
     if (!imageUri) return
 
-    // Mock upload - 假数据 & 自动跳转
     console.log('Uploading (mock)... 🚀')
     setTimeout(() => {
       console.log('OCR result (mock):', {
         text: 'Mock OCR Result: Passport verified successfully!',
       })
+
       Alert.alert('OCR Completed', 'Your passport has been verified successfully.')
 
-      // ✅ 自动跳转到 driver-profile-details，并携带参数
+      // Navigate to the next step with preserved user data
       router.push({
         pathname: '/driver-profile-details',
         params: { phoneNumber, email, city },
@@ -83,11 +88,13 @@ export default function VerificationPage(): JSX.Element {
         <>
           <Text style={styles.subHeading}>Account Verification*</Text>
 
+          {/* Button to verify with passport */}
           <TouchableOpacity style={styles.verifyButton} onPress={() => launchCamera('passport')}>
             <Text style={styles.verifyText}>Verify with passport</Text>
             <Image source={cameraIcon} style={styles.cameraIcon} />
           </TouchableOpacity>
 
+          {/* Button to verify with ID card */}
           <TouchableOpacity style={styles.verifyButton} onPress={() => launchCamera('id')}>
             <Text style={styles.verifyText}>Verify with ID card</Text>
             <Image source={cameraIcon} style={styles.cameraIcon} />
@@ -104,19 +111,24 @@ export default function VerificationPage(): JSX.Element {
         </>
       ) : (
         <View style={styles.previewContainer}>
+          {/* Show preview and confirm upload */}
           <Text style={styles.subHeading}>
             {verificationType === 'passport'
               ? 'Passport Photo Preview'
               : 'ID Card Photo Preview'}
           </Text>
+
+          {/* Display captured image */}
           <Image source={{ uri: imageUri }} style={styles.capturedImage} />
 
+          {/* Upload only shown for passport in this mock */}
           {verificationType === 'passport' && (
             <TouchableOpacity style={styles.uploadButton} onPress={uploadImageForOCR}>
               <Text style={styles.uploadButtonText}>Upload for OCR</Text>
             </TouchableOpacity>
           )}
 
+          {/* Retake button */}
           <TouchableOpacity style={styles.resetButton} onPress={resetVerification}>
             <Text style={styles.resetButtonText}>Retake Photo</Text>
           </TouchableOpacity>
@@ -126,10 +138,12 @@ export default function VerificationPage(): JSX.Element {
   )
 }
 
+// Type for styles
 type Style = {
   [key: string]: ViewStyle | TextStyle
 }
 
+// Page styles
 const styles = StyleSheet.create<Style>({
   container: {
     flex: 1,

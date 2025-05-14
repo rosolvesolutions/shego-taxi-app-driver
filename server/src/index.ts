@@ -5,7 +5,7 @@ import dotenv from 'dotenv'
 
 import connectDB from './config/db'
 import driverRoutes from './routes/driverRoute'
-import visionRoutes from './routes/visionRoute' // 👈 新加的
+import visionRoutes from './routes/visionRoute' 
 
 // Load environment variables from .env file
 dotenv.config({ path: path.resolve(__dirname, '../../.env') })
