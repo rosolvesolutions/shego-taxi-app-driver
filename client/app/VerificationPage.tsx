@@ -117,10 +117,16 @@ export default function VerificationPage(): JSX.Element {
         Alert.alert('OCR Failed', data.error || 'Unknown error')
       }
       
-    } catch (err: any) {
-      console.error('❌ Upload Error:', err)
-      Alert.alert('Upload Error', err.message || 'Something went wrong')
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error('❌ Upload Error:', err)
+        Alert.alert('Upload Error', err.message || 'Something went wrong')
+      } else {
+        console.error('❌ Unknown Upload Error:', err)
+        Alert.alert('Upload Error', 'Something went wrong')
+      }
     }
+    
   }
   
 
