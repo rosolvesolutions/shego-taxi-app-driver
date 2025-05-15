@@ -5,10 +5,10 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
+  TextStyle,
+  ViewStyle,
 } from 'react-native'
-import { router, useLocalSearchParams } from 'expo-router'
-import { API_BASE_URL } from '../lib/config'
+// import { router } from 'expo-router'
 
 export default function DriverProfileDetails(): JSX.Element {
   const [firstName, setFirstName] = useState('')
@@ -17,85 +17,69 @@ export default function DriverProfileDetails(): JSX.Element {
   const [driverLicence, setDriverLicence] = useState('')
   const [taxiLicence, setTaxiLicence] = useState('')
 
-  const { phoneNumber, email, city } = useLocalSearchParams()
-
-  const handleContinue = async () => {
-    console.log('🧪 handleContinue triggered')
-    console.log('🔗 API_BASE_URL:', API_BASE_URL)
-
+  const handleContinue = () => {
     if (!firstName || !lastName || !carReg || !driverLicence || !taxiLicence) {
-      console.log('❌ Missing fields')
-      Alert.alert('Please fill in all required fields')
+      alert('Please fill in all fields.')
       return
     }
 
-    const payload = {
-      phoneNumber,
-      email,
-      city,
-      firstName,
-      lastName,
-      driverLicense: driverLicence,
-      taxiNumber: taxiLicence,
-      pfp: 'https://default-avatar.png',
-    }
-
-    try {
-      console.log('📡 Sending request with payload:', payload)
-
-      const response = await fetch(`${API_BASE_URL}/api/driver/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-
-      console.log('📬 Response status:', response.status)
-      const data = await response.json()
-      console.log('📨 Response body:', data)
-
-      if (response.ok) {
-        Alert.alert('Registration Successful', 'Welcome to the platform!')
-        router.replace('/')
-      } else {
-        Alert.alert('Registration Failed', data.error || 'Server error')
-      }
-    } catch (err) {
-      console.error('❌ Network error:', err)
-      Alert.alert('Network Error', 'Unable to connect to the server')
-    }
+    alert('Driver profile submitted!')
+    // router.push('/next-step')
   }
 
   return (
     <View style={styles.container}>
+      {/* Logo Placeholder */}
       <View style={styles.logoPlaceholder}>
         <Text style={styles.logoText}>Logo</Text>
       </View>
 
+      {/* Input Fields */}
       <View style={styles.inputGroup}>
         <Text style={styles.label}>
           First Name <Text style={styles.required}>*</Text>
         </Text>
-        <TextInput style={styles.input} value={firstName} onChangeText={setFirstName} />
+        <TextInput
+          style={styles.input}
+          value={firstName}
+          onChangeText={setFirstName}
+        />
 
         <Text style={styles.label}>
           Last Name <Text style={styles.required}>*</Text>
         </Text>
-        <TextInput style={styles.input} value={lastName} onChangeText={setLastName} />
+        <TextInput
+          style={styles.input}
+          value={lastName}
+          onChangeText={setLastName}
+        />
 
         <Text style={styles.label}>
           Car Registration <Text style={styles.required}>*</Text>
         </Text>
-        <TextInput style={styles.input} value={carReg} onChangeText={setCarReg} />
+        <TextInput
+          style={styles.input}
+          value={carReg}
+          onChangeText={setCarReg}
+        />
 
         <Text style={styles.label}>
-          Driver Licence <Text style={styles.required}>*</Text>
+          Drivers Licence <Text style={styles.required}>*</Text>
         </Text>
-        <TextInput style={styles.input} value={driverLicence} onChangeText={setDriverLicence} />
+        <TextInput
+          style={styles.input}
+          value={driverLicence}
+          onChangeText={setDriverLicence}
+        />
 
         <Text style={styles.label}>
           Taxi Licence <Text style={styles.required}>*</Text>
         </Text>
-        <TextInput style={styles.input} value={taxiLicence} onChangeText={setTaxiLicence} />
+        <TextInput
+          style={styles.input}
+          value={taxiLicence}
+          onChangeText={setTaxiLicence}
+        />
       </View>
 
       <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
@@ -105,7 +89,11 @@ export default function DriverProfileDetails(): JSX.Element {
   )
 }
 
-const styles = StyleSheet.create({
+type Style = {
+  [key: string]: ViewStyle | TextStyle
+}
+
+const styles = StyleSheet.create<Style>({
   container: {
     flex: 1,
     backgroundColor: '#fff',
