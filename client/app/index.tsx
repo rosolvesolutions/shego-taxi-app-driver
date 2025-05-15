@@ -6,6 +6,7 @@ import {
   StyleSheet,
 } from 'react-native'
 import { router } from 'expo-router'
+import { API_BASE_URL } from '../lib/config'
 
 export default function UserSelectionPage() {
   const [fetchedValue, setFetchedValue] = useState<string | null>(null)
@@ -13,7 +14,7 @@ export default function UserSelectionPage() {
   useEffect(() => {
     const fetchValue = async () => {
       try {
-        const response = await fetch('http://172.20.10.2:5001/api/value')
+        const response = await fetch(`${API_BASE_URL}/api/value`)
         const data = await response.json()
         setFetchedValue(data.value)
       } catch (error) {

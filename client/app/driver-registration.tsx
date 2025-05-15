@@ -18,19 +18,17 @@ export default function DriverRegistration(): JSX.Element {
   const [email, setEmail] = useState('')
   const [city, setCity] = useState('')
 
-
   const handleRegister = () => {
     if (!phone || !email || !city) {
       alert('Please fill out all fields')
       return
     }
-  
+
     router.push({
-      pathname: '/driver-profile-details',
+      pathname: '/VerificationPage',
       params: { phoneNumber: phone, email, city },
     })
   }
-  
 
   return (
     <View style={styles.container}>
@@ -55,10 +53,7 @@ export default function DriverRegistration(): JSX.Element {
       {/* Email Field */}
       <Text style={styles.label}>Enter your email here</Text>
       <View style={styles.inputRow}>
-        <Image
-          source={emailIcon}
-          style={styles.icon}
-        />
+        <Image source={emailIcon} style={styles.icon} />
         <TextInput
           style={styles.input}
           placeholder="jane@gmail.com"
@@ -71,10 +66,7 @@ export default function DriverRegistration(): JSX.Element {
       {/* City Field */}
       <Text style={styles.label}>City</Text>
       <View style={styles.inputRow}>
-        <Image
-          source={pinIcon}
-          style={styles.icon}
-        />
+        <Image source={pinIcon} style={styles.icon} />
         <TextInput
           style={styles.input}
           placeholder="Dublin"

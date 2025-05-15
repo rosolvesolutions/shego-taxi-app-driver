@@ -5,6 +5,7 @@ import dotenv from 'dotenv'
 
 import connectDB from './config/db'
 import driverRoutes from './routes/driverRoute'
+import visionRoutes from './routes/visionRoute' 
 
 // Load environment variables from .env file
 dotenv.config({ path: path.resolve(__dirname, '../../.env') })
@@ -12,10 +13,10 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') })
 const app = express()
 const PORT = process.env.EXPRESS_SERVER_PORT || 5001
 
-app.use(cors({ origin: '*' })) // You can allow all origins or restrict to your Expo address
-app.use(express.json()) // 👈 Enable JSON body parsing
+app.use(cors({ origin: '*' })) 
+app.use(express.json()) 
 
-connectDB() // ✅ Initialize MongoDB connection
+connectDB() 
 
 // Test endpoint
 app.get('/api/value', (req, res) => {
@@ -24,6 +25,9 @@ app.get('/api/value', (req, res) => {
 
 // Driver registration routes
 app.use('/api/driver', driverRoutes)
+
+// Vision OCR routes 👇
+app.use('/api/vision', visionRoutes)
 
 app.listen(PORT, () => {
   console.log(`✅ Server running at ${process.env.EXPRESS_SERVER_IP}:${PORT}`)
