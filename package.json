@@ -31,6 +31,7 @@
     "homepage": "https://github.com/rosolvesolutions/shego-taxi-app-driver#readme",
     "dependencies": {
         "@google-cloud/vision": "^5.1.0",
+        "expo-file-system": "^18.1.10",
         "express": "^5.1.0",
         "multer": "^1.4.5-lts.2"
     }
