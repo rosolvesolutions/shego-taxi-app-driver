@@ -12,22 +12,23 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
 import cameraIcon from '../assets/images/camera.png'
+import { API_BASE_URL } from '../lib/config'
+import { ScrollView } from 'react-native'
+
 
 export default function VerificationPage(): JSX.Element {
-  // Get user data from the previous page
   const { phoneNumber, email, city } = useLocalSearchParams()
   const router = useRouter()
 
   const userInfo = phoneNumber || email || 'User'
-
   const [imageUri, setImageUri] = useState<string | null>(null)
   const [verificationType, setVerificationType] = useState<'passport' | 'id' | null>(null)
 
-  // Launch the camera to capture a document (passport or ID)
+  // Launch camera to capture image
   const launchCamera = async (type: 'passport' | 'id') => {
     setVerificationType(type)
-
     const { status } = await ImagePicker.requestCameraPermissionsAsync()
+
     if (status !== 'granted') {
       Alert.alert('Permission denied', 'Camera access is required for verification.')
       return
@@ -40,110 +41,159 @@ export default function VerificationPage(): JSX.Element {
 
     if (!result.canceled) {
       const uri = result.assets[0].uri
-      console.log('Captured Image URI:', uri)
+      console.log('📸 Captured Image URI:', uri)
       setImageUri(uri)
       Alert.alert('Photo captured', 'Preview your photo below.')
     }
   }
 
-  // Reset verification state
+  // Reset state
   const resetVerification = () => {
     setImageUri(null)
     setVerificationType(null)
   }
 
-  // Upload image for OCR (mocked logic)
+  // Upload image to backend for OCR
   const uploadImageForOCR = async () => {
     if (!imageUri) return
-
-    console.log('Uploading (mock)... 🚀')
-    setTimeout(() => {
-      console.log('OCR result (mock):', {
-        text: 'Mock OCR Result: Passport verified successfully!',
+  
+    try {
+      const formData = new FormData()
+  
+      // ✅ For web browser: fetch the image URI and convert to blob
+      const res = await fetch(imageUri)
+      const blob = await res.blob()
+  
+      formData.append('image', blob, 'passport.jpg')
+  
+      /* 
+      📱 For future use with Expo (mobile app):
+      Uncomment the following lines if testing on a real device or emulator
+      
+      formData.append('image', {
+        uri: imageUri,
+        type: 'image/jpeg',
+        name: 'passport.jpg',
+      } as any)
+      */
+  
+      const response = await fetch(`${API_BASE_URL}/api/vision/ocr`, {
+        method: 'POST',
+        body: formData,
+        // ⚠️ Do NOT manually set 'Content-Type'; the browser will set it with correct multipart boundary
       })
-
-      Alert.alert('OCR Completed', 'Your passport has been verified successfully.')
-
-      // Navigate to the next step with preserved user data
-      router.push({
-        pathname: '/driver-profile-details',
-        params: { phoneNumber, email, city },
-      })
-    }, 1000)
+  
+      const data = await response.json()
+  
+      if (response.ok) {
+        console.log('✅ OCR result:', data)
+      
+        // Extract the second MRZ line (usually contains gender info)
+        const mrz = data.mrzLines?.[1] || ''
+        const genderChar = mrz[20] || '' // MRZ second line, 21st character (index 20)
+      
+        console.log('🔍 Detected gender character:', genderChar)
+      
+        // Gender-based access control
+        if (genderChar === 'F') {
+          Alert.alert(
+            'OCR Completed',
+            data.mrzLines?.length
+              ? `Extracted MRZ:\n${data.mrzLines.join('\n')}`
+              : 'MRZ lines not found.'
+          )
+      
+          // Navigate to next screen only for female
+          router.push({
+            pathname: '/driver-profile-details',
+            params: { phoneNumber, email, city },
+          })
+        } else if (genderChar === 'M') {
+          Alert.alert('Access Denied', 'Only female drivers are allowed to register.')
+        } else {
+          Alert.alert('Unclear Gender Info', 'Could not detect gender from passport.')
+        }
+      } else {
+        Alert.alert('OCR Failed', data.error || 'Unknown error')
+      }
+      
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error('❌ Upload Error:', err)
+        Alert.alert('Upload Error', err.message || 'Something went wrong')
+      } else {
+        console.error('❌ Unknown Upload Error:', err)
+        Alert.alert('Upload Error', 'Something went wrong')
+      }
+    }
+    
   }
+  
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>
-        Hi <Text style={styles.bold}>{userInfo}</Text>! Let’s complete your verification.
-      </Text>
-
-      <Text style={styles.userDetails}>
-        Phone: {phoneNumber}{'\n'}
-        Email: {email}{'\n'}
-        City: {city}
-      </Text>
-
-      {!imageUri ? (
-        <>
-          <Text style={styles.subHeading}>Account Verification*</Text>
-
-          {/* Button to verify with passport */}
-          <TouchableOpacity style={styles.verifyButton} onPress={() => launchCamera('passport')}>
-            <Text style={styles.verifyText}>Verify with passport</Text>
-            <Image source={cameraIcon} style={styles.cameraIcon} />
-          </TouchableOpacity>
-
-          {/* Button to verify with ID card */}
-          <TouchableOpacity style={styles.verifyButton} onPress={() => launchCamera('id')}>
-            <Text style={styles.verifyText}>Verify with ID card</Text>
-            <Image source={cameraIcon} style={styles.cameraIcon} />
-          </TouchableOpacity>
-
-          <Text style={styles.noteText}>
-            *Verification is <Text style={styles.bold}>mandatory</Text> for account creation. If you cannot verify with
-            the above methods please contact us <Text style={styles.link}>here</Text> and we’ll do our best to help.
-          </Text>
-
-          <Text style={styles.footer}>
-            All data collected is stored privately and only used to protect the safety of you and others. © Team Rosolve.
-          </Text>
-        </>
-      ) : (
-        <View style={styles.previewContainer}>
-          {/* Show preview and confirm upload */}
-          <Text style={styles.subHeading}>
-            {verificationType === 'passport'
-              ? 'Passport Photo Preview'
-              : 'ID Card Photo Preview'}
-          </Text>
-
-          {/* Display captured image */}
-          <Image source={{ uri: imageUri }} style={styles.capturedImage} />
-
-          {/* Upload only shown for passport in this mock */}
-          {verificationType === 'passport' && (
-            <TouchableOpacity style={styles.uploadButton} onPress={uploadImageForOCR}>
-              <Text style={styles.uploadButtonText}>Upload for OCR</Text>
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <View style={styles.container}>
+        <Text style={styles.title}>
+          Hi <Text style={styles.bold}>{userInfo}</Text>! Let’s complete your verification.
+        </Text>
+  
+        <Text style={styles.userDetails}>
+          Phone: {phoneNumber}{'\n'}
+          Email: {email}{'\n'}
+          City: {city}
+        </Text>
+  
+        {!imageUri ? (
+          <>
+            <Text style={styles.subHeading}>Account Verification*</Text>
+  
+            <TouchableOpacity style={styles.verifyButton} onPress={() => launchCamera('passport')}>
+              <Text style={styles.verifyText}>Verify with passport</Text>
+              <Image source={cameraIcon} style={styles.cameraIcon} />
             </TouchableOpacity>
-          )}
-
-          {/* Retake button */}
-          <TouchableOpacity style={styles.resetButton} onPress={resetVerification}>
-            <Text style={styles.resetButtonText}>Retake Photo</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    </View>
+  
+            <TouchableOpacity style={styles.verifyButton} onPress={() => launchCamera('id')}>
+              <Text style={styles.verifyText}>Verify with ID card</Text>
+              <Image source={cameraIcon} style={styles.cameraIcon} />
+            </TouchableOpacity>
+  
+            <Text style={styles.noteText}>
+              *Verification is <Text style={styles.bold}>mandatory</Text> for account creation. If you
+              cannot verify with the above methods please contact us <Text style={styles.link}>here</Text>.
+            </Text>
+  
+            <Text style={styles.footer}>
+              All data collected is stored privately and only used to protect the safety of you and others. © Team Rosolve.
+            </Text>
+          </>
+        ) : (
+          <View style={styles.previewContainer}>
+            <Text style={styles.subHeading}>
+              {verificationType === 'passport' ? 'Passport Photo Preview' : 'ID Card Photo Preview'}
+            </Text>
+            <Image source={{ uri: imageUri }} style={styles.capturedImage} />
+  
+            {verificationType === 'passport' && (
+              <TouchableOpacity style={styles.uploadButton} onPress={uploadImageForOCR}>
+                <Text style={styles.uploadButtonText}>Upload for OCR</Text>
+              </TouchableOpacity>
+            )}
+  
+            <TouchableOpacity style={styles.resetButton} onPress={resetVerification}>
+              <Text style={styles.resetButtonText}>Retake Photo</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+    </ScrollView>
   )
+  
 }
 
-// Type for styles
 type Style = {
   [key: string]: ViewStyle | TextStyle
 }
 
-// Page styles
 const styles = StyleSheet.create<Style>({
   container: {
     flex: 1,
