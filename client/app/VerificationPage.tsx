@@ -12,9 +12,9 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
 import cameraIcon from '../assets/images/camera.png'
-import { API_BASE_URL } from '../lib/config'
 import { ScrollView } from 'react-native'
 
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5001';
 
 export default function VerificationPage(): JSX.Element {
   const { phoneNumber, email, city } = useLocalSearchParams()
