@@ -76,7 +76,7 @@ export default function VerificationPage(): JSX.Element {
         uri: manipulated.uri,
         type: 'image/jpeg',
         name: 'passport.jpg',
-      } as any)
+      } as unknown as Blob)
 
       const response = await fetch(`${API_BASE_URL}/api/vision/ocr`, {
         method: 'POST',
