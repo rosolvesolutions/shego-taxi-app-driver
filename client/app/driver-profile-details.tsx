@@ -8,7 +8,7 @@ import {
   Alert,
 } from 'react-native'
 import { router, useLocalSearchParams } from 'expo-router'
-import { API_BASE_URL } from '../lib/config'
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5001';
 
 export default function DriverProfileDetails(): JSX.Element {
   const [firstName, setFirstName] = useState('')
