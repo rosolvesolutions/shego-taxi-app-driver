@@ -8,13 +8,14 @@ import {
   ViewStyle,
   Image,
   Alert,
+  ScrollView,
 } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
+import * as ImageManipulator from 'expo-image-manipulator'
 import cameraIcon from '../assets/images/camera.png'
-import { ScrollView } from 'react-native'
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5001';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5001'
 
 export default function VerificationPage(): JSX.Element {
   const { phoneNumber, email, city } = useLocalSearchParams()
@@ -22,13 +23,9 @@ export default function VerificationPage(): JSX.Element {
 
   const userInfo = phoneNumber || email || 'User'
   const [imageUri, setImageUri] = useState<string | null>(null)
-  const [verificationType, setVerificationType] = useState<'passport' | 'id' | null>(null)
 
-  // Launch camera to capture image
-  const launchCamera = async (type: 'passport' | 'id') => {
-    setVerificationType(type)
+  const launchCamera = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync()
-
     if (status !== 'granted') {
       Alert.alert('Permission denied', 'Camera access is required for verification.')
       return
@@ -41,60 +38,60 @@ export default function VerificationPage(): JSX.Element {
 
     if (!result.canceled) {
       const uri = result.assets[0].uri
-      console.log('📸 Captured Image URI:', uri)
       setImageUri(uri)
       Alert.alert('Photo captured', 'Preview your photo below.')
     }
   }
 
-  // Reset state
   const resetVerification = () => {
     setImageUri(null)
-    setVerificationType(null)
   }
 
-  // Upload image to backend for OCR
+  // 更智能的性别提取函数（容错、结构匹配）
+  const extractGenderFromMRZ = (mrzLine: string): string | null => {
+    if (!mrzLine) return null
+
+    const cleaned = mrzLine.replace(/[^A-Z0-9<]/gi, '').replace(/\s+/g, '')
+    const match = cleaned.match(/([0-9]{7})([MF<])/)
+
+    if (match) {
+      const genderChar = match[2]
+      if (genderChar === 'F' || genderChar === 'M') return genderChar
+    }
+
+    return null
+  }
+
   const uploadImageForOCR = async () => {
     if (!imageUri) return
-  
+
     try {
+      const manipulated = await ImageManipulator.manipulateAsync(imageUri, [], {
+        compress: 0.8,
+        format: ImageManipulator.SaveFormat.JPEG,
+      })
+
       const formData = new FormData()
-  
-      // ✅ For web browser: fetch the image URI and convert to blob
-      const res = await fetch(imageUri)
-      const blob = await res.blob()
-  
-      formData.append('image', blob, 'passport.jpg')
-  
-      /* 
-      📱 For future use with Expo (mobile app):
-      Uncomment the following lines if testing on a real device or emulator
-      
       formData.append('image', {
-        uri: imageUri,
+        uri: manipulated.uri,
         type: 'image/jpeg',
         name: 'passport.jpg',
       } as any)
-      */
-  
+
       const response = await fetch(`${API_BASE_URL}/api/vision/ocr`, {
         method: 'POST',
         body: formData,
-        // ⚠️ Do NOT manually set 'Content-Type'; the browser will set it with correct multipart boundary
       })
-  
+
       const data = await response.json()
-  
+
       if (response.ok) {
         console.log('✅ OCR result:', data)
-      
-        // Extract the second MRZ line (usually contains gender info)
+
         const mrz = data.mrzLines?.[1] || ''
-        const genderChar = mrz[20] || '' // MRZ second line, 21st character (index 20)
-      
+        const genderChar = extractGenderFromMRZ(mrz)
         console.log('🔍 Detected gender character:', genderChar)
-      
-        // Gender-based access control
+
         if (genderChar === 'F') {
           Alert.alert(
             'OCR Completed',
@@ -102,8 +99,7 @@ export default function VerificationPage(): JSX.Element {
               ? `Extracted MRZ:\n${data.mrzLines.join('\n')}`
               : 'MRZ lines not found.'
           )
-      
-          // Navigate to next screen only for female
+
           router.push({
             pathname: '/driver-profile-details',
             params: { phoneNumber, email, city },
@@ -116,19 +112,15 @@ export default function VerificationPage(): JSX.Element {
       } else {
         Alert.alert('OCR Failed', data.error || 'Unknown error')
       }
-      
     } catch (err: unknown) {
       if (err instanceof Error) {
         console.error('❌ Upload Error:', err)
         Alert.alert('Upload Error', err.message || 'Something went wrong')
       } else {
-        console.error('❌ Unknown Upload Error:', err)
         Alert.alert('Upload Error', 'Something went wrong')
       }
     }
-    
   }
-  
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -136,49 +128,39 @@ export default function VerificationPage(): JSX.Element {
         <Text style={styles.title}>
           Hi <Text style={styles.bold}>{userInfo}</Text>! Let’s complete your verification.
         </Text>
-  
+
         <Text style={styles.userDetails}>
           Phone: {phoneNumber}{'\n'}
           Email: {email}{'\n'}
           City: {city}
         </Text>
-  
+
         {!imageUri ? (
           <>
             <Text style={styles.subHeading}>Account Verification*</Text>
-  
-            <TouchableOpacity style={styles.verifyButton} onPress={() => launchCamera('passport')}>
+
+            <TouchableOpacity style={styles.verifyButton} onPress={launchCamera}>
               <Text style={styles.verifyText}>Verify with passport</Text>
               <Image source={cameraIcon} style={styles.cameraIcon} />
             </TouchableOpacity>
-  
-            <TouchableOpacity style={styles.verifyButton} onPress={() => launchCamera('id')}>
-              <Text style={styles.verifyText}>Verify with ID card</Text>
-              <Image source={cameraIcon} style={styles.cameraIcon} />
-            </TouchableOpacity>
-  
+
             <Text style={styles.noteText}>
-              *Verification is <Text style={styles.bold}>mandatory</Text> for account creation. If you
-              cannot verify with the above methods please contact us <Text style={styles.link}>here</Text>.
+              *Verification is <Text style={styles.bold}>mandatory</Text> for account creation.
             </Text>
-  
+
             <Text style={styles.footer}>
               All data collected is stored privately and only used to protect the safety of you and others. © Team Rosolve.
             </Text>
           </>
         ) : (
           <View style={styles.previewContainer}>
-            <Text style={styles.subHeading}>
-              {verificationType === 'passport' ? 'Passport Photo Preview' : 'ID Card Photo Preview'}
-            </Text>
+            <Text style={styles.subHeading}>Passport Photo Preview</Text>
             <Image source={{ uri: imageUri }} style={styles.capturedImage} />
-  
-            {verificationType === 'passport' && (
-              <TouchableOpacity style={styles.uploadButton} onPress={uploadImageForOCR}>
-                <Text style={styles.uploadButtonText}>Upload for OCR</Text>
-              </TouchableOpacity>
-            )}
-  
+
+            <TouchableOpacity style={styles.uploadButton} onPress={uploadImageForOCR}>
+              <Text style={styles.uploadButtonText}>Upload for OCR</Text>
+            </TouchableOpacity>
+
             <TouchableOpacity style={styles.resetButton} onPress={resetVerification}>
               <Text style={styles.resetButtonText}>Retake Photo</Text>
             </TouchableOpacity>
@@ -187,7 +169,6 @@ export default function VerificationPage(): JSX.Element {
       </View>
     </ScrollView>
   )
-  
 }
 
 type Style = {
@@ -195,6 +176,9 @@ type Style = {
 }
 
 const styles = StyleSheet.create<Style>({
+  scrollContainer: {
+    flexGrow: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',
@@ -241,10 +225,6 @@ const styles = StyleSheet.create<Style>({
     color: '#333',
     marginTop: 10,
     marginBottom: 24,
-  },
-  link: {
-    textDecorationLine: 'underline',
-    fontWeight: '500',
   },
   footer: {
     fontSize: 11,
