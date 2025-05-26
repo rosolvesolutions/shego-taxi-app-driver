@@ -1,7 +1,6 @@
 import 'dotenv/config'
 import path from 'path'
 import dotenv from 'dotenv'
-import { ConfigContext, ExpoConfig } from 'expo/config';
 
 // Load .env from one directory up
 dotenv.config({ path: path.resolve(__dirname, '../.env') })

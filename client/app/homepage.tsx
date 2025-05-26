@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Text, Image, TouchableOpacity, Platform, SafeAreaView, TextInput, Animated, Pressable} from 'react-native';
 import DriverMapFullScreen from './components/home/DriverMapFullScreen';
-import Header from './components/home/Header';
-import { FontAwesome5, Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import OnlineToggle from './components/home/OnlineToggle';
 import TripRequestCard from './components/home/TripRequestCard';
 import PendingRequests from './components/home/PendingRequests';
