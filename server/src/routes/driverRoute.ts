@@ -1,4 +1,3 @@
-// server/src/routes/driver.ts
 import express, { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import Driver from '../models/driverModel';
@@ -8,8 +7,7 @@ const router = express.Router();
 /**
  * Register a new driver
  */
-// @ts-expect-error
-
+// @ts-expect-error: Mongoose schema may cause type mismatch in request body
 router.post('/register', async (req: Request, res: Response) => {
   try {
     const {
@@ -54,8 +52,7 @@ router.post('/register', async (req: Request, res: Response) => {
 /**
  * Update driver availability
  */
-// @ts-expect-error
-
+// @ts-expect-error: req.params may conflict with expected Application type
 router.put('/:id/availability', async (req: Request, res: Response) => {
   try {
     const { isAvailable } = req.body;
@@ -85,8 +82,7 @@ router.put('/:id/availability', async (req: Request, res: Response) => {
 /**
  * Login driver by email and password
  */
-// @ts-expect-error
-
+// @ts-expect-error: type mismatch in req.body fields
 router.post('/login', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
@@ -100,9 +96,10 @@ router.post('/login', async (req: Request, res: Response) => {
     if (!driver) {
       return res.status(404).json({ success: false, error: 'Account not found.' });
     }
-    // @ts-expect-error
 
+    // @ts-expect-error: bcrypt expects string, but TS cannot infer driver.password type
     const isMatch = await bcrypt.compare(password, driver.password);
+
     if (!isMatch) {
       return res.status(401).json({ success: false, error: 'Incorrect password.' });
     }
