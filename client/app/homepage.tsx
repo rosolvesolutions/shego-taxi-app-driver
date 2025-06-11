@@ -1,30 +1,21 @@
-import React, {useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import DriverMapFullScreen from './components/home/DriverMapFullScreen';
-// import OnlineToggle from './components/home/OnlineToggle';
 import TripRequestCard from './components/home/TripRequestCard';
-//import { useTripRequest } from './hooks/useTripRequest';
+import { useTripRequest } from './hooks/useTripRequest';
 import { Trip } from './types/Trip';
 
-type BackendTrip = {
-  _id: string;
-  passengerFirstName: string;
-  passengerLastName: string;
-  pickupAddress: string;
-  dropoffAddress: string;
-};
-
 export default function DriverHomePage() {
-  // const [isOnline, setIsOnline] = useState(false);
+  const [isOnline] = useState(false);
 
-  // const {
-  //   activeTrip,
-  //   pending,
-  //   countdown,
-  //   acceptTrip,
-  //   hideTrip,
-  //   setPending
-  // } = useTripRequest(isOnline);
+  const {
+    activeTrip,
+    pending,
+    countdown,
+    acceptTrip,
+    hideTrip,
+    setPending,
+  } = useTripRequest(isOnline);
 
   const DRIVER_ID = '645f3b1a9f1b2c0012345673';
   const BACKEND_URL = 'http://172.20.10.4:8080';
@@ -35,7 +26,7 @@ export default function DriverHomePage() {
       const data = await response.json();
 
       if (data.pendingRequests && data.pendingRequests.length > 0) {
-        const mapped: Trip[] = data.pendingRequests.map((item: BackendTrip) => ({
+        const mapped: Trip[] = data.pendingRequests.map((item: any) => ({
           id: item._id,
           bookingId: item._id,
           name: `${item.passengerFirstName} ${item.passengerLastName}`,
@@ -104,13 +95,6 @@ export default function DriverHomePage() {
     <View style={styles.container}>
       <DriverMapFullScreen />
 
-      {/* <View style={styles.floatingUI}>
-        <OnlineToggle
-          isOnline={isOnline}
-          onToggle={handleToggleOnline}
-        />
-      </View> */}
-
       {activeTrip && (
         <View style={styles.cardContainer}>
           <TripRequestCard
@@ -166,14 +150,6 @@ export default function DriverHomePage() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  floatingUI: {
-    position: 'absolute',
-    top: 140,
-    left: 20,
-    right: 20,
-    gap: 16,
-    zIndex: 15,
-  },
   cardContainer: {
     position: 'absolute',
     bottom: 180,

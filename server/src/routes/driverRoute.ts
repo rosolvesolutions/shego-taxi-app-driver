@@ -1,5 +1,5 @@
 // server/src/routes/driver.ts
-import express from 'express';
+import express, { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import Driver from '../models/driverModel';
 
@@ -8,7 +8,7 @@ const router = express.Router();
 /**
  * Register a new driver
  */
-router.post('/register', async (req, res) => {
+router.post('/register', async (req: Request, res: Response) => {
   try {
     const {
       driverLicense,
@@ -52,12 +52,17 @@ router.post('/register', async (req, res) => {
 /**
  * Update driver availability
  */
-router.put('/:id/availability', async (req, res) => {
+router.put('/:id/availability', async (req: Request, res: Response) => {
   try {
     const { isAvailable } = req.body;
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ message: 'Driver ID is required' });
+    }
 
     const driver = await Driver.findByIdAndUpdate(
-      req.params.id,
+      id,
       { isAvailable },
       { new: true }
     );
@@ -76,11 +81,10 @@ router.put('/:id/availability', async (req, res) => {
 /**
  * Login driver by email and password
  */
-router.post('/login', async (req, res) => {
+router.post('/login', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
-    // Validate input
     if (!email || !password) {
       return res.status(400).json({ success: false, error: 'Email and password are required.' });
     }
@@ -96,7 +100,6 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ success: false, error: 'Incorrect password.' });
     }
 
-    // If success, you can also return driver info or a token
     res.status(200).json({ success: true, message: 'Login successful' });
   } catch (err) {
     console.error('❌ Login error:', err);
