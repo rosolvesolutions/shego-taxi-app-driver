@@ -8,7 +8,7 @@ const router = express.Router();
 /**
  * Register a new driver
  */
-// @ts-ignore
+// @ts-expect-error
 
 router.post('/register', async (req: Request, res: Response) => {
   try {
@@ -54,7 +54,7 @@ router.post('/register', async (req: Request, res: Response) => {
 /**
  * Update driver availability
  */
-// @ts-ignore
+// @ts-expect-error
 
 router.put('/:id/availability', async (req: Request, res: Response) => {
   try {
@@ -85,7 +85,7 @@ router.put('/:id/availability', async (req: Request, res: Response) => {
 /**
  * Login driver by email and password
  */
-// @ts-ignore
+// @ts-expect-error
 
 router.post('/login', async (req: Request, res: Response) => {
   try {
@@ -100,7 +100,7 @@ router.post('/login', async (req: Request, res: Response) => {
     if (!driver) {
       return res.status(404).json({ success: false, error: 'Account not found.' });
     }
-    // @ts-ignore
+    // @ts-expect-error
 
     const isMatch = await bcrypt.compare(password, driver.password);
     if (!isMatch) {
