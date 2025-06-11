@@ -10,7 +10,8 @@
     "web": "expo start --web",
     "test": "jest --passWithNoTests",
     "lint": "expo lint",
-    "build": "expo export"
+    "build": "expo export --platform android,ios"
+
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
