@@ -18,6 +18,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import Stepper from './components/Stepper';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5001';
 
 if (Platform.OS === 'android') {
   UIManager.setLayoutAnimationEnabledExperimental?.(true);
@@ -72,11 +73,39 @@ export default function DriverBasicInfoStep() {
     }
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (Object.keys(errors).length === 0) {
-      router.push('/VerificationPage');
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/driver/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fullName,
+            phone,
+            email,
+            password,
+          }),
+        });
+  
+        const data = await response.json();
+  
+        if (response.ok) {
+          router.push({
+            pathname: '/VerificationPage',
+            params: {
+              phoneNumber: phone,
+              email: email,
+            },
+          });
+        } else {
+          console.error('❌ Registration failed:', data.error || 'Unknown error');
+        }
+      } catch (err) {
+        console.error('❌ Network error:', err);
+      }
     }
   };
+  
 
   const steps = ['Welcome', 'Basic Info', 'Verify'];
 
@@ -216,6 +245,7 @@ export default function DriverBasicInfoStep() {
     </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   safeContainer: {

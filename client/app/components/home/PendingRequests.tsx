@@ -36,6 +36,27 @@ export default function PendingRequests({ data, onSelect, onRemove }: Props) {
     </TouchableOpacity>
   );
 
+  const renderItem = ({ item }: { item: Trip }) => (
+    <View key={item.id}>
+      <Swipeable renderRightActions={() => renderRightActions(item.id)}>
+        <TouchableOpacity
+          onPress={() => onSelect(item)}
+          style={styles.card}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.rider}>
+            {item.name} • {item.rating} ★
+          </Text>
+          <Text style={styles.address}>From: {item.pickup}</Text>
+          <Text style={styles.address}>To: {item.dropoff}</Text>
+          <Text style={styles.meta}>
+            ETA: {item.eta} • €{item.fare}
+          </Text>
+        </TouchableOpacity>
+      </Swipeable>
+    </View>
+  );
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>📥 Pending Requests</Text>
@@ -47,24 +68,7 @@ export default function PendingRequests({ data, onSelect, onRemove }: Props) {
         data={data}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingBottom: 8 }}
-        renderItem={({ item }) => (
-          <Swipeable renderRightActions={() => renderRightActions(item.id)}>
-            <TouchableOpacity
-              onPress={() => onSelect(item)}
-              style={styles.card}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.rider}>
-                {item.name} • {item.rating} ★
-              </Text>
-              <Text style={styles.address}>From: {item.pickup}</Text>
-              <Text style={styles.address}>To: {item.dropoff}</Text>
-              <Text style={styles.meta}>
-                ETA: {item.eta} • €{item.fare}
-              </Text>
-            </TouchableOpacity>
-          </Swipeable>
-        )}
+        renderItem={renderItem}
       />
     </View>
   );

@@ -1,16 +1,14 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, Text, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import DriverMapFullScreen from './components/home/DriverMapFullScreen';
-import Header from './components/home/Header';
 import OnlineToggle from './components/home/OnlineToggle';
 import TripRequestCard from './components/home/TripRequestCard';
-import PendingRequests from './components/home/PendingRequests';
 import { useTripRequest } from './hooks/useTripRequest';
 import { Trip } from './types/Trip';
 
-
 export default function DriverHomePage() {
   const [isOnline, setIsOnline] = useState(false);
+
   const {
     activeTrip,
     pending,
@@ -20,54 +18,109 @@ export default function DriverHomePage() {
     setPending
   } = useTripRequest(isOnline);
 
-  // 🗑 Remove a pending request by ID
-  const removePending = (tripId: string) => {
-    setPending((prev: Trip[]) => prev.filter((trip: Trip) => trip.id !== tripId));
+  const DRIVER_ID = '645f3b1a9f1b2c0012345673';
+  const BACKEND_URL = 'http://172.20.10.4:8080';
 
+  const handleToggleOnline = async () => {
+    const newStatus = !isOnline;
+    setIsOnline(newStatus);
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/driver/${DRIVER_ID}/availability`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isAvailable: newStatus }),
+      });
+
+      if (!response.ok) throw new Error('Failed to update driver availability');
+      console.log(`Driver is now ${newStatus ? 'online' : 'offline'}`);
+    } catch (error) {
+      console.error('Error updating availability:', error);
+    }
   };
+
+  const handleFetchPendingRequests = async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/booking/driver-response`);
+      const data = await response.json();
+
+      if (data.pendingRequests && data.pendingRequests.length > 0) {
+        const mapped: Trip[] = data.pendingRequests.map((item: any) => ({
+          id: item._id,
+          bookingId: item._id,
+          name: `${item.passengerFirstName} ${item.passengerLastName}`,
+          rating: 4.8,
+          photo: 'https://randomuser.me/api/portraits/women/75.jpg',
+          pickup: item.pickupAddress,
+          dropoff: item.dropoffAddress,
+          eta: '•',
+          fare: '€25.75',
+        }));
+
+        setPending((prev) => {
+          const existingIds = new Set(prev.map((t) => t.bookingId));
+          const unique = mapped.filter((t) => !existingIds.has(t.bookingId));
+          return [...prev, ...unique];
+        });
+
+        console.log('✅ Pending requests updated');
+      } else {
+        console.log('No new pending requests.');
+      }
+    } catch (error) {
+      console.error('Failed to fetch pending requests:', error);
+    }
+  };
+
+  const handleAcceptTrip = async (bookingId: string) => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/booking/driver-accept`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          driverId: DRIVER_ID,
+          bookingId,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error('Server rejected:', result);
+        throw new Error('Failed to accept trip');
+      }
+
+      console.log(`✅ Booking ${bookingId} accepted by driver ${DRIVER_ID}`);
+      setPending((prev) => prev.filter((trip) => trip.bookingId !== bookingId));
+    } catch (err) {
+      console.error('Error accepting trip:', err);
+    }
+  };
+
+  const handleDeclineTrip = (bookingId: string) => {
+    setPending((prev) => prev.filter((trip) => trip.bookingId !== bookingId));
+    console.log(`❌ Trip ${bookingId} declined`);
+  };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      handleFetchPendingRequests();
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <View style={styles.container}>
       <DriverMapFullScreen />
 
-      {/* Greeting Box */}
-      <View style={styles.greetingBox}>
-        <Text style={styles.greetingText}>Welcome back,</Text>
-        <Text style={styles.driverName}>Aisha 👋</Text>
-        <Image
-          source={{ uri: 'https://randomuser.me/api/portraits/women/75.jpg' }}
-          style={styles.avatar}
-        />
-      </View>
-
-      {/* Floating Controls */}
-      <View style={styles.floatingUI}>
+      {/* <View style={styles.floatingUI}>
         <OnlineToggle
           isOnline={isOnline}
-          onToggle={() => setIsOnline((prev) => !prev)}
+          onToggle={handleToggleOnline}
         />
+      </View> */}
 
-        {/* Dashboard Summary */}
-        <View style={styles.dashboardCard}>
-          <View style={styles.statBox}>
-            <Text style={styles.statLabel}>Earnings</Text>
-            <Text style={styles.statValue}>€86.40</Text>
-          </View>
-          <View style={styles.separator} />
-          <View style={styles.statBox}>
-            <Text style={styles.statLabel}>Trips</Text>
-            <Text style={styles.statValue}>6</Text>
-          </View>
-          <View style={styles.separator} />
-          <View style={styles.statBox}>
-            <Text style={styles.statLabel}>Rating</Text>
-            <Text style={styles.statValue}>4.93 ★</Text>
-          </View>
-        </View>
-
-      </View>
-
-      {/* Active Trip Request */}
       {activeTrip && (
         <View style={styles.cardContainer}>
           <TripRequestCard
@@ -88,52 +141,41 @@ export default function DriverHomePage() {
         </View>
       )}
 
-      {/* Pending Request List */}
-      <View style={styles.pending}>
-        <PendingRequests
-          data={pending}
-          onSelect={acceptTrip}
-          onRemove={removePending}
-        />
-      </View>
+      {pending.length > 0 && (
+        <View style={styles.pendingList}>
+          <Text style={styles.pendingTitle}>📥 Pending Requests</Text>
+          {pending.map((trip) => (
+            <View key={trip.id} style={styles.tripCard}>
+              <Text style={styles.tripTitle}>
+                {trip.name} • {trip.rating} ★
+              </Text>
+              <Text style={styles.tripAddress}>From: {trip.pickup}</Text>
+              <Text style={styles.tripAddress}>To: {trip.dropoff}</Text>
+              <Text style={styles.tripFare}>Fare: {trip.fare}</Text>
+
+              <TouchableOpacity
+                style={styles.acceptButton}
+                onPress={() => handleAcceptTrip(trip.bookingId)}
+              >
+                <Text style={styles.acceptButtonText}>✅ Accept</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.declineButton}
+                onPress={() => handleDeclineTrip(trip.bookingId)}
+              >
+                <Text style={styles.declineButtonText}>❌ Decline</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  greetingBox: {
-    position: 'absolute',
-    top: 60,
-    left: 20,
-    right: 20,
-    zIndex: 20,
-    backgroundColor: 'rgba(255,255,255,0.85)',
-    padding: 16,
-    borderRadius: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 5,
-  },
-  greetingText: {
-    fontSize: 14,
-    color: '#444',
-  },
-  driverName: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#9E2A45',
-    marginRight: 10,
-  },
-  avatar: {
-    marginLeft: 'auto',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-  },
   floatingUI: {
     position: 'absolute',
     top: 140,
@@ -141,37 +183,6 @@ const styles = StyleSheet.create({
     right: 20,
     gap: 16,
     zIndex: 15,
-  },
-  dashboardCard: {
-    flexDirection: 'row',
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 3,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  statBox: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#777',
-    marginBottom: 4,
-  },
-  statValue: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111',
-  },
-  separator: {
-    width: 1,
-    backgroundColor: '#eee',
-    height: 40,
   },
   cardContainer: {
     position: 'absolute',
@@ -195,10 +206,65 @@ const styles = StyleSheet.create({
     height: 6,
     backgroundColor: '#9E2A45',
   },
-  pending: {
+  pendingList: {
     position: 'absolute',
     bottom: 40,
-    left: 0,
-    right: 0,
+    left: 20,
+    right: 20,
+    padding: 12,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  pendingTitle: {
+    fontWeight: '700',
+    fontSize: 15,
+    color: '#9E2A45',
+    marginBottom: 10,
+  },
+  tripCard: {
+    backgroundColor: '#f9f9f9',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8,
+  },
+  tripTitle: {
+    fontWeight: '600',
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  tripAddress: {
+    fontSize: 13,
+    color: '#444',
+  },
+  tripFare: {
+    fontSize: 13,
+    color: '#9E2A45',
+    marginTop: 4,
+  },
+  acceptButton: {
+    marginTop: 10,
+    backgroundColor: '#27AE60',
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  acceptButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  declineButton: {
+    marginTop: 8,
+    backgroundColor: '#E74C3C',
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  declineButtonText: {
+    color: '#fff',
+    fontWeight: '600',
   },
 });

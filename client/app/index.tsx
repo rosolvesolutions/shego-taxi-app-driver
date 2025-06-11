@@ -4,7 +4,7 @@ import { Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { FontAwesome5, MaterialIcons, Ionicons } from '@expo/vector-icons';
 import Stepper from './components/Stepper'; 
-
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5001';
 
 const { width } = Dimensions.get('window');
 
@@ -15,7 +15,7 @@ export default function DriverRegistrationLanding() {
   useEffect(() => {
     const fetchValue = async () => {
       try {
-        const response = await fetch('http://10.156.29.62/api/value');
+        const response = await fetch(`${API_BASE_URL}/api/value`);
         const data = await response.json();
         setFetchedValue(data.value);
       } catch (error) {
@@ -79,9 +79,9 @@ export default function DriverRegistrationLanding() {
 
           <TouchableOpacity
             style={styles.ctaButton}
-            onPress={() => router.push('/homepage')}
+            onPress={() => router.push('/login')}
           >
-            <Text style={styles.ctaText}>Homepage</Text>
+            <Text style={styles.ctaText}>Login</Text>
           </TouchableOpacity>
 
           <View style={styles.loginPrompt}>
@@ -104,6 +104,7 @@ export default function DriverRegistrationLanding() {
     </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
