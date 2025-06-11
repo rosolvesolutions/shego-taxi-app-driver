@@ -15,16 +15,16 @@ type BackendTrip = {
 };
 
 export default function DriverHomePage() {
-  const [isOnline, setIsOnline] = useState(false);
+  // const [isOnline, setIsOnline] = useState(false);
 
-  const {
-    activeTrip,
-    pending,
-    countdown,
-    acceptTrip,
-    hideTrip,
-    setPending
-  } = useTripRequest(isOnline);
+  // const {
+  //   activeTrip,
+  //   pending,
+  //   countdown,
+  //   acceptTrip,
+  //   hideTrip,
+  //   setPending
+  // } = useTripRequest(isOnline);
 
   const DRIVER_ID = '645f3b1a9f1b2c0012345673';
   const BACKEND_URL = 'http://172.20.10.4:8080';

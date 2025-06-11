@@ -9,7 +9,7 @@ import {
   StyleSheet,
   StatusBar,
   Platform,
-  useWindowDimensions,
+  //useWindowDimensions,
   LayoutAnimation,
   UIManager,
   Animated,
