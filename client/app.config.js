@@ -1,10 +1,4 @@
-import fs from 'fs';
-import path from 'path';
-
-const googleKeyPath = path.resolve(__dirname, './keys/google-maps-key.json');
-const googleKeyJson = JSON.parse(fs.readFileSync(googleKeyPath, 'utf-8'));
-const GOOGLE_MAPS_API_KEY = googleKeyJson.apiKey;
-
+import 'dotenv/config';
 export default {
   expo: {
     name: 'client',
@@ -19,14 +13,14 @@ export default {
     ios: {
       supportsTablet: true,
       config: {
-        googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+        googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY,
       },
       bundleIdentifier: 'com.rosolve.taxi',
     },
     android: {
       config: {
         googleMaps: {
-          apiKey: GOOGLE_MAPS_API_KEY,
+          apiKey: process.env.GOOGLE_MAPS_API_KEY,
         },
       },
       adaptiveIcon: {
