@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import DriverMapFullScreen from './components/home/DriverMapFullScreen';
-//import OnlineToggle from './components/home/OnlineToggle';
+// import OnlineToggle from './components/home/OnlineToggle';
 import TripRequestCard from './components/home/TripRequestCard';
 import { useTripRequest } from './hooks/useTripRequest';
 import { Trip } from './types/Trip';
+
+type BackendTrip = {
+  _id: string;
+  passengerFirstName: string;
+  passengerLastName: string;
+  pickupAddress: string;
+  dropoffAddress: string;
+};
 
 export default function DriverHomePage() {
   const [isOnline, setIsOnline] = useState(false);
@@ -21,31 +29,13 @@ export default function DriverHomePage() {
   const DRIVER_ID = '645f3b1a9f1b2c0012345673';
   const BACKEND_URL = 'http://172.20.10.4:8080';
 
-  const handleToggleOnline = async () => {
-    const newStatus = !isOnline;
-    setIsOnline(newStatus);
-
-    try {
-      const response = await fetch(`${BACKEND_URL}/api/driver/${DRIVER_ID}/availability`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isAvailable: newStatus }),
-      });
-
-      if (!response.ok) throw new Error('Failed to update driver availability');
-      console.log(`Driver is now ${newStatus ? 'online' : 'offline'}`);
-    } catch (error) {
-      console.error('Error updating availability:', error);
-    }
-  };
-
   const handleFetchPendingRequests = async () => {
     try {
       const response = await fetch(`${BACKEND_URL}/api/booking/driver-response`);
       const data = await response.json();
 
       if (data.pendingRequests && data.pendingRequests.length > 0) {
-        const mapped: Trip[] = data.pendingRequests.map((item: any) => ({
+        const mapped: Trip[] = data.pendingRequests.map((item: BackendTrip) => ({
           id: item._id,
           bookingId: item._id,
           name: `${item.passengerFirstName} ${item.passengerLastName}`,

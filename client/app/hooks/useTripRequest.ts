@@ -12,16 +12,24 @@ type Trip = {
   fare: string;
 };
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5001';
-const DRIVER_ID = 'YOUR_DRIVER_ID'; // ✅ 替换为实际 driverId
+type BackendTrip = {
+  _id?: string;
+  id?: string;
+  passengerFirstName?: string;
+  passengerLastName?: string;
+  pickupAddress?: string;
+  dropoffAddress?: string;
+};
 
-// ✅ 映射后端 Trip 数据为前端 Trip 类型
-function transformTrip(data: any): Trip {
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5001';
+const DRIVER_ID = 'YOUR_DRIVER_ID';
+
+function transformTrip(data: BackendTrip): Trip {
   return {
     id: data._id || data.id || 'unknown-id',
     name: `${data.passengerFirstName ?? 'Unknown'} ${data.passengerLastName ?? ''}`,
-    rating: 4.8, // 可替换为 data.rating 如后端支持
-    photo: 'https://randomuser.me/api/portraits/women/75.jpg', // 可替换为 data.passengerPhoto
+    rating: 4.8,
+    photo: 'https://randomuser.me/api/portraits/women/75.jpg',
     pickup: data.pickupAddress ?? 'Unknown Pickup',
     dropoff: data.dropoffAddress ?? 'Unknown Dropoff',
     eta: '•',
@@ -41,7 +49,7 @@ export function useTripRequest(isOnline: boolean) {
       const res = await fetch(`${API_BASE_URL}/api/trip/next?driverId=${DRIVER_ID}`);
       const data = await res.json();
 
-      const backendTrip = data.trip;
+      const backendTrip = data.trip as BackendTrip;
       const backendTripId = backendTrip?._id || backendTrip?.id;
 
       if (res.ok && backendTrip && backendTripId && !memory.current.has(backendTripId)) {
@@ -59,7 +67,6 @@ export function useTripRequest(isOnline: boolean) {
     }
   };
 
-  // 拉取逻辑：每 8 秒轮询一次
   useEffect(() => {
     if (!isOnline || activeTrip || cooldown) return;
 
@@ -70,7 +77,6 @@ export function useTripRequest(isOnline: boolean) {
     return () => clearTimeout(timeout);
   }, [isOnline, activeTrip, cooldown]);
 
-  // 倒计时逻辑
   useEffect(() => {
     if (!activeTrip || countdown <= 0) return;
 
@@ -78,7 +84,6 @@ export function useTripRequest(isOnline: boolean) {
     return () => clearTimeout(timer);
   }, [countdown, activeTrip]);
 
-  // 倒计时结束后，将 trip 加入 pending
   useEffect(() => {
     if (activeTrip && countdown === 0) {
       setPending((prev) => [...prev, activeTrip]);
@@ -132,6 +137,6 @@ export function useTripRequest(isOnline: boolean) {
     countdown,
     acceptTrip,
     hideTrip,
-    setPending, // 外部可用来手动清除或替换 pending
+    setPending,
   };
 }

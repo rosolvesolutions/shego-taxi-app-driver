@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView, View, Text, TouchableOpacity, StyleSheet, StatusBar, Dimensions, ScrollView, Platform } from 'react-native';
-import { Pressable } from 'react-native'; 
+//import { Pressable } from 'react-native'; 
 import { router } from 'expo-router';
 import { FontAwesome5, MaterialIcons, Ionicons } from '@expo/vector-icons';
 import Stepper from './components/Stepper'; 

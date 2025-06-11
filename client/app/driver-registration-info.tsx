@@ -25,7 +25,7 @@ if (Platform.OS === 'android') {
 }
 
 export default function DriverBasicInfoStep() {
-  const { width } = useWindowDimensions();
+  //const { width } = useWindowDimensions();
   const [currentSection, setCurrentSection] = useState(0);
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
