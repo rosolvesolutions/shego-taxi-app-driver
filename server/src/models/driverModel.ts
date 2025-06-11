@@ -9,7 +9,9 @@ const driverSchema = new mongoose.Schema(
     lastName: String,
     email: String,
     pfp: String,
+    password:String,
     taxiNumber: String,
+    isAvailable: { type: Boolean, default: false },
     rating: {
       type: Number,
       default: 5,

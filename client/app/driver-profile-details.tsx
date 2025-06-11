@@ -53,12 +53,12 @@ export default function DriverProfileDetails(): JSX.Element {
       const data = await response.json()
       console.log('📨 Response body:', data)
 
-      if (response.ok) {
-        Alert.alert('Registration Successful', 'Welcome to the platform!')
-        router.replace('/')
+      if (response.ok || data.error === 'Email already registered') {
+        router.replace('/') // ✅ 无论是否已经注册，直接跳转
       } else {
         Alert.alert('Registration Failed', data.error || 'Server error')
       }
+      
     } catch (err) {
       console.error('❌ Network error:', err)
       Alert.alert('Network Error', 'Unable to connect to the server')
