@@ -10,7 +10,7 @@
     "web": "expo start --web",
     "test": "jest --passWithNoTests",
     "lint": "expo lint",
-    "build": "expo export --platform android,ios"
+    "build": "expo export --platform all"
 
   },
   "dependencies": {
