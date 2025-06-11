@@ -5,6 +5,14 @@ import TripRequestCard from './components/home/TripRequestCard';
 import { useTripRequest } from './hooks/useTripRequest';
 import { Trip } from './types/Trip';
 
+type BackendTrip = {
+  _id: string;
+  passengerFirstName: string;
+  passengerLastName: string;
+  pickupAddress: string;
+  dropoffAddress: string;
+};
+
 export default function DriverHomePage() {
   const [isOnline] = useState(false);
 
@@ -26,7 +34,7 @@ export default function DriverHomePage() {
       const data = await response.json();
 
       if (data.pendingRequests && data.pendingRequests.length > 0) {
-        const mapped: Trip[] = data.pendingRequests.map((item: any) => ({
+        const mapped: Trip[] = data.pendingRequests.map((item: BackendTrip) => ({
           id: item._id,
           bookingId: item._id,
           name: `${item.passengerFirstName} ${item.passengerLastName}`,
