@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import DriverMapFullScreen from './components/home/DriverMapFullScreen';
-import OnlineToggle from './components/home/OnlineToggle';
+//import OnlineToggle from './components/home/OnlineToggle';
 import TripRequestCard from './components/home/TripRequestCard';
 import { useTripRequest } from './hooks/useTripRequest';
 import { Trip } from './types/Trip';
