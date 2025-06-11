@@ -1,15 +1,8 @@
-import React, { useState } from 'react';
-import { View, Text, Switch, StyleSheet } from 'react-native';
+//import React from 'react';
+import { View, StyleSheet } from 'react-native';
 
-export default function OnlineToggle() {
-  const [isOnline, setIsOnline] = useState(false);
-
-  const toggleSwitch = () => {
-    setIsOnline((prev) => !prev);
-    // TODO: POST to backend to update status
-  };
-
-  
+export default function ActionButtons() {
+  return <View style={styles.container} />;
 }
 
 const styles = StyleSheet.create({
@@ -19,10 +12,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 12,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
   },
 });
