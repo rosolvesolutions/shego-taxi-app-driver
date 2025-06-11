@@ -1,9 +1,10 @@
 import 'dotenv/config';
 import path from 'path';
-import dotenv from 'dotenv';
+import fs from 'fs';
 
-// Load environment variables from .env
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
+const googleKeyPath = path.resolve(__dirname, '../server/keys/google-maps-key.json');
+const googleKeyJson = JSON.parse(fs.readFileSync(googleKeyPath, 'utf-8'));
+const GOOGLE_MAPS_API_KEY = googleKeyJson.apiKey;
 
 export default {
   expo: {
@@ -15,15 +16,16 @@ export default {
     scheme: 'myapp',
     userInterfaceStyle: 'automatic',
     newArchEnabled: true,
-    entryPoint: './node_modules/expo-router/entry',
     platforms: ['ios', 'android'],
+
     ios: {
       supportsTablet: true,
       bundleIdentifier: 'com.rosolve.taxi',
       config: {
-        googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY,
+        googleMapsApiKey: GOOGLE_MAPS_API_KEY,
       },
     },
+
     android: {
       adaptiveIcon: {
         foregroundImage: './assets/images/adaptive-icon.png',
@@ -31,15 +33,17 @@ export default {
       },
       config: {
         googleMaps: {
-          apiKey: process.env.GOOGLE_MAPS_API_KEY,
+          apiKey: GOOGLE_MAPS_API_KEY,
         },
       },
     },
+
     web: {
       bundler: 'metro',
       output: 'static',
       favicon: './assets/images/favicon.png',
     },
+
     plugins: [
       'expo-router',
       [
@@ -52,9 +56,11 @@ export default {
         },
       ],
     ],
+
     experiments: {
       typedRoutes: true,
     },
+
     extra: {
       EXPO_PUBLIC_API_URL: process.env.EXPO_PUBLIC_API_URL,
     },
